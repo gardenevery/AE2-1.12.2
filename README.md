@@ -1,8 +1,8 @@
-# Applied Energistics 2 Unofficial Extended Life
+# AE2UEL Extra
 
 ---
 
-foke by https://github.com/AE2-UEL/Applied-Energistics-2
+forked from https://github.com/AE2-UEL/Applied-Energistics-2
 
 ## RecipeStages
 
