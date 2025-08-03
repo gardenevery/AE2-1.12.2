@@ -2,6 +2,8 @@
 
 ---
 
+foke by https://github.com/AE2-UEL/Applied-Energistics-2
+
 ## RecipeStages
 
 You need to add the following into a CraftTweaker script:
