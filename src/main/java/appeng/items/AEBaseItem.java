@@ -56,11 +56,6 @@ public abstract class AEBaseItem extends Item {
         }
     }
 
-    @Override
-    public boolean isBookEnchantable(final ItemStack itemstack1, final ItemStack itemstack2) {
-        return false;
-    }
-
     @SideOnly(Side.CLIENT)
     protected void addCheckedInformation(final ItemStack stack, final World world, final List<String> lines,
             final ITooltipFlag advancedTooltips) {

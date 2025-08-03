@@ -28,8 +28,12 @@ import javax.annotation.Nullable;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Enchantments;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
@@ -137,8 +141,18 @@ public final class ItemPart extends AEBaseItem implements IPartItem, IItemGroup 
     @Override
     public EnumActionResult onItemUse(final EntityPlayer player, final World w, final BlockPos pos, final EnumHand hand,
             final EnumFacing side, final float hitX, final float hitY, final float hitZ) {
-        if (this.getTypeByStack(player.getHeldItem(hand)) == PartType.INVALID_TYPE) {
+        ItemStack heldItem = player.getHeldItem(hand);
+        PartType typeByStack = getTypeByStack(heldItem);
+        if (typeByStack == PartType.INVALID_TYPE) {
             return EnumActionResult.FAIL;
+        }
+
+        if (player.isSneaking() && typeByStack == PartType.IDENTITY_ANNIHILATION_PLANE) {
+            ItemStack newPlane = new ItemStack(this, heldItem.getCount(), PartType.ANNIHILATION_PLANE.getBaseDamage());
+            newPlane.addEnchantment(Enchantments.SILK_TOUCH,1);
+
+            player.setHeldItem(hand, newPlane);
+            return EnumActionResult.SUCCESS;
         }
 
         return AEApi.instance().partHelper().placeBus(player.getHeldItem(hand), pos, side, player, hand, w);
@@ -180,6 +194,43 @@ public final class ItemPart extends AEBaseItem implements IPartItem, IItemGroup 
         for (final Entry<Integer, PartTypeWithVariant> part : types) {
             itemStacks.add(new ItemStack(this, 1, part.getKey()));
         }
+    }
+
+    @Override
+    protected void addCheckedInformation(ItemStack stack, World world, List<String> lines, ITooltipFlag advancedTooltips) {
+        if (getTypeByStack(stack) == PartType.ANNIHILATION_PLANE) {
+            var enchantments = EnchantmentHelper.getEnchantments(stack);
+            if (enchantments.isEmpty()) {
+                lines.add(GuiText.CanBeEnchanted.getLocal());
+            }
+            else {
+                lines.add(GuiText.IncreasedEnergyUseFromEnchants.getLocal());
+            }
+        }
+
+        if (getTypeByStack(stack) == PartType.IDENTITY_ANNIHILATION_PLANE) {
+            lines.add(GuiText.Deprecated.getLocal());
+        }
+    }
+
+    @Override
+    public int getItemEnchantability() {
+        return 10;
+    }
+
+    @Override
+    public boolean isEnchantable(ItemStack stack) {
+        return getTypeByStack(stack) == PartType.ANNIHILATION_PLANE;
+    }
+
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        return enchantment == Enchantments.UNBREAKING || enchantment == Enchantments.FORTUNE || enchantment == Enchantments.SILK_TOUCH || enchantment == Enchantments.EFFICIENCY;
+    }
+
+    @Override
+    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+        return getTypeByStack(stack) == PartType.ANNIHILATION_PLANE;
     }
 
     @Nonnull

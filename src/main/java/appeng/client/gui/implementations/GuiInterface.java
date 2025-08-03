@@ -29,6 +29,7 @@ import appeng.api.config.LockCraftingMode;
 import appeng.api.config.Settings;
 import appeng.api.config.YesNo;
 import appeng.client.gui.widgets.GuiImgButton;
+import appeng.client.gui.widgets.GuiImgLabel;
 import appeng.client.gui.widgets.GuiTabButton;
 import appeng.client.gui.widgets.GuiToggleButton;
 import appeng.container.implementations.ContainerInterface;
@@ -45,10 +46,17 @@ public class GuiInterface extends GuiUpgradeable {
     private GuiImgButton UnlockMode;
     private GuiImgButton BlockMode;
     private GuiToggleButton interfaceMode;
+    private GuiImgLabel lockReason;
 
     public GuiInterface(final InventoryPlayer inventoryPlayer, final IInterfaceHost te) {
         super(new ContainerInterface(inventoryPlayer, te));
         this.ySize = 256;
+    }
+
+    @Override
+    public void initGui() {
+        super.initGui();
+        this.addLabel();
     }
 
     @Override
@@ -68,6 +76,14 @@ public class GuiInterface extends GuiUpgradeable {
         this.buttonList.add(this.interfaceMode);
     }
 
+    protected void addLabel() {
+        if (lockReason != null) {
+            labelList.remove(this.lockReason);
+        }
+        this.lockReason = new GuiImgLabel(this.fontRenderer, guiLeft + 40, guiTop + 12, Settings.UNLOCK, LockCraftingMode.NONE);
+        labelList.add(lockReason);
+    }
+
     @Override
     public void drawFG(final int offsetX, final int offsetY, final int mouseX, final int mouseY) {
         if (this.BlockMode != null) {
@@ -80,6 +96,10 @@ public class GuiInterface extends GuiUpgradeable {
 
         if (this.interfaceMode != null) {
             this.interfaceMode.setState(((ContainerInterface) this.cvb).getInterfaceTerminalMode() == YesNo.YES);
+        }
+
+        if (this.lockReason != null) {
+            this.lockReason.set(((ContainerInterface) this.cvb).getCraftingLockedReason());
         }
 
         this.fontRenderer.drawString(this.getGuiDisplayName(GuiText.Interface.getLocal()), 8, 6, 4210752);

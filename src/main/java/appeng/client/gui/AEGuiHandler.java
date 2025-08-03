@@ -10,6 +10,8 @@ import javax.annotation.Nullable;
 import org.lwjgl.input.Mouse;
 
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.inventory.Slot;
 
 import mezz.jei.api.gui.IAdvancedGuiHandler;
 import mezz.jei.api.gui.IGhostIngredientHandler;
@@ -21,7 +23,9 @@ import appeng.client.gui.implementations.GuiCraftingCPU;
 import appeng.client.gui.implementations.GuiExpandedProcessingPatternTerm;
 import appeng.client.gui.implementations.GuiPatternTerm;
 import appeng.client.gui.implementations.GuiUpgradeable;
+import appeng.client.gui.widgets.GuiCustomSlot;
 import appeng.container.interfaces.IJEIGhostIngredients;
+import appeng.container.interfaces.ISpecialSlotIngredient;
 import appeng.container.slot.IJEITargetSlot;
 
 public class AEGuiHandler implements IAdvancedGuiHandler<AEBaseGui>, IGhostIngredientHandler<AEBaseGui> {
@@ -66,9 +70,37 @@ public class AEGuiHandler implements IAdvancedGuiHandler<AEBaseGui>, IGhostIngre
         if (guiContainer instanceof GuiCraftAmount) {
             if (guiContainer.getSlotUnderMouse() != null) {
                 result = guiContainer.getSlotUnderMouse().getStack();
+            } else {
+                return null;
             }
         }
+
+        if (result != null) {
+            return result;
+        }
+
+        Slot slot = guiContainer.getSlotUnderMouse();
+        if (slot instanceof ISpecialSlotIngredient ss) {
+            return ss.getIngredient();
+        }
+        for (GuiCustomSlot customSlot : guiContainer.guiSlots) {
+            if (this.checkSlotArea(guiContainer, customSlot, mouseX, mouseY)) {
+                return customSlot.getIngredient();
+            }
+        }
+
         return result;
+    }
+
+    private boolean checkSlotArea(GuiContainer gui, GuiCustomSlot slot, int mouseX, int mouseY) {
+        int i = gui.guiLeft;
+        int j = gui.guiTop;
+        mouseX = mouseX - i;
+        mouseY = mouseY - j;
+        return mouseX >= slot.xPos() - 1 &&
+                mouseX < slot.xPos() + slot.getWidth() + 1 &&
+                mouseY >= slot.yPos() - 1 &&
+                mouseY < slot.yPos() + slot.getHeight() + 1;
     }
 
     private int getSlotidx(AEBaseGui guiContainer, int mouseX, int mouseY, int rows) {

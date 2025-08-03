@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 
+import appeng.util.inv.InvOperation;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.wrapper.RangedWrapper;
 
@@ -42,8 +43,16 @@ public class AppEngNetworkInventory extends AppEngInternalOversizedInventory {
             if (overflow != null && overflow.getStackSize() == originAmt) {
                 return super.insertItem(slot, stack, simulate);
             } else if (overflow != null) {
+                if (!simulate) {
+                    ItemStack added = stack.copy();
+                    added.setCount((int) (stack.getCount() - overflow.getStackSize()));
+                    this.getTileEntity().onChangeInventory(this, slot, InvOperation.INSERT, ItemStack.EMPTY, added);
+                }
                 return overflow.createItemStack();
             } else {
+                if (!simulate) {
+                    this.getTileEntity().onChangeInventory(this, slot, InvOperation.INSERT, ItemStack.EMPTY, stack);
+                }
                 return ItemStack.EMPTY;
             }
         } else {

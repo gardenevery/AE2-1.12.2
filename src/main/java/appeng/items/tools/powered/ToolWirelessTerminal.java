@@ -31,6 +31,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.Optional;
@@ -96,9 +97,9 @@ public class ToolWirelessTerminal extends AEBasePoweredItem implements IWireless
                 final String encKey = tag.getString("encryptionKey");
 
                 if (encKey == null || encKey.isEmpty()) {
-                    lines.add(GuiText.Unlinked.getLocal());
+                    lines.add(TextFormatting.RED + GuiText.Unlinked.getLocal());
                 } else {
-                    lines.add(GuiText.Linked.getLocal());
+                    lines.add(TextFormatting.GREEN + GuiText.Linked.getLocal());
                 }
             }
         } else {

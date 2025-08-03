@@ -73,6 +73,7 @@ import appeng.api.networking.ticking.IGridTickable;
 import appeng.api.networking.ticking.TickRateModulation;
 import appeng.api.networking.ticking.TickingRequest;
 import appeng.api.parts.IPart;
+import appeng.api.parts.IPartHost;
 import appeng.api.storage.*;
 import appeng.api.storage.channels.IFluidStorageChannel;
 import appeng.api.storage.channels.IItemStorageChannel;
@@ -88,6 +89,7 @@ import appeng.core.AELog;
 import appeng.core.settings.TickRates;
 import appeng.me.GridAccessException;
 import appeng.me.helpers.AENetworkProxy;
+import appeng.me.helpers.IGridProxyable;
 import appeng.me.helpers.MachineSource;
 import appeng.me.storage.MEMonitorIInventory;
 import appeng.me.storage.MEMonitorPassThrough;
@@ -1030,8 +1032,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 
     @Override
     public boolean pushPattern(final ICraftingPatternDetails patternDetails, final InventoryCrafting table) {
-        if (this.hasItemsToSend() || this.hasItemsToSendFacing() || !this.gridProxy.isActive()
-                || !this.craftingList.contains(patternDetails)) {
+        if (this.hasItemsToSend() || this.hasItemsToSendFacing() || !this.gridProxy.isActive() || !this.craftingList.contains(patternDetails)) {
             return false;
         }
 
@@ -1048,66 +1049,64 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 
         for (final EnumFacing s : visitedFaces) {
             final TileEntity te = w.getTileEntity(tile.getPos().offset(s));
-            if (te instanceof IInterfaceHost || (te instanceof TileCableBus
-                    && ((TileCableBus) te).getPart(s.getOpposite()) instanceof PartInterface)) {
+            if (te == null) {
                 visitedFaces.remove(s);
+                continue;
+            }
+
+            var mon = te.getCapability(Capabilities.STORAGE_MONITORABLE_ACCESSOR, s.getOpposite());
+            if (mon != null) {
+                visitedFaces.remove(s);
+
                 try {
-                    IInterfaceHost targetTE;
-                    if (te instanceof IInterfaceHost) {
-                        targetTE = (IInterfaceHost) te;
+                    IGridProxyable proxyable;
+                    if (te instanceof IGridProxyable) {
+                        proxyable = (IGridProxyable) te;
+                    } else if (te instanceof IPartHost partHost) {
+                        proxyable = (IGridProxyable) partHost.getPart(s.getOpposite());
                     } else {
-                        targetTE = (IInterfaceHost) ((TileCableBus) te).getPart(s.getOpposite());
+                        continue;
                     }
 
-                    if (targetTE.getInterfaceDuality().sameGrid(this.gridProxy.getGrid())) {
+                    if (proxyable.getProxy().getGrid() == this.gridProxy.getGrid()) {
                         continue;
-                    } else {
-                        IStorageMonitorableAccessor mon = te.getCapability(Capabilities.STORAGE_MONITORABLE_ACCESSOR,
-                                s.getOpposite());
-                        if (mon != null) {
-                            IStorageMonitorable sm = mon.getInventory(this.mySource);
-                            if (sm != null
-                                    && Platform.canAccess(targetTE.getInterfaceDuality().gridProxy, this.mySource)) {
-                                if (this.isBlocking() && sm
-                                        .getInventory(
-                                                AEApi.instance().storage().getStorageChannel(IItemStorageChannel.class))
-                                        .getStorageList().size() > 0) {
+                    }
+
+                    IStorageMonitorable sm = mon.getInventory(this.mySource);
+                    if (sm != null && Platform.canAccess(proxyable.getProxy(), this.mySource)) {
+                        if (this.isBlocking() && !sm.getInventory(AEApi.instance().storage().getStorageChannel(IItemStorageChannel.class)).getStorageList().isEmpty()) {
+                            continue;
+                        } else {
+                            IMEMonitor<IAEItemStack> inv = sm.getInventory(AEApi.instance().storage().getStorageChannel(IItemStorageChannel.class));
+
+                            var allItemsCanBeInserted = true;
+                            for (int x = 0; x < table.getSizeInventory(); x++) {
+                                final ItemStack is = table.getStackInSlot(x);
+                                if (is.isEmpty()) {
                                     continue;
-                                } else {
-                                    IMEMonitor<IAEItemStack> inv = sm.getInventory(
-                                            AEApi.instance().storage().getStorageChannel(IItemStorageChannel.class));
-
-                                    var allItemsCanBeInserted = true;
-                                    for (int x = 0; x < table.getSizeInventory(); x++) {
-                                        final ItemStack is = table.getStackInSlot(x);
-                                        if (is.isEmpty()) {
-                                            continue;
-                                        }
-                                        IAEItemStack result = inv.injectItems(AEItemStack.fromItemStack(is),
-                                                Actionable.SIMULATE, this.mySource);
-                                        if (result != null) {
-                                            allItemsCanBeInserted = false;
-                                            break;
-                                        }
-                                    }
-
-                                    if (!allItemsCanBeInserted) {
-                                        continue;
-                                    }
-
-                                    this.visitedFaces.clear();
-                                    for (int x = 0; x < table.getSizeInventory(); x++) {
-                                        final ItemStack is = table.getStackInSlot(x);
-                                        if (!is.isEmpty()) {
-                                            addToSendListFacing(is, s);
-                                        }
-                                    }
-                                    onPushPatternSuccess(patternDetails);
-                                    pushItemsOut(s);
-
-                                    return true;
+                                }
+                                IAEItemStack result = inv.injectItems(AEItemStack.fromItemStack(is), Actionable.SIMULATE, this.mySource);
+                                if (result != null) {
+                                    allItemsCanBeInserted = false;
+                                    break;
                                 }
                             }
+
+                            if (!allItemsCanBeInserted) {
+                                continue;
+                            }
+
+                            this.visitedFaces.clear();
+                            for (int x = 0; x < table.getSizeInventory(); x++) {
+                                final ItemStack is = table.getStackInSlot(x);
+                                if (!is.isEmpty()) {
+                                    addToSendListFacing(is, s);
+                                }
+                            }
+                            onPushPatternSuccess(patternDetails);
+                            pushItemsOut(s);
+
+                            return true;
                         }
                     }
                 } catch (final GridAccessException e) {
@@ -1135,17 +1134,14 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
                         phantomTE = ((IPhantomTile) te);
                         if (phantomTE.hasBoundPosition()) {
                             TileEntity phantom = w.getTileEntity(phantomTE.getBoundPosition());
-                            if (NonBlockingItems.INSTANCE.getMap()
-                                    .containsKey(w.getBlockState(phantomTE.getBoundPosition()).getBlock()
-                                            .getRegistryName().getNamespace())) {
+                            if (NonBlockingItems.INSTANCE.getMap().containsKey(w.getBlockState(phantomTE.getBoundPosition()).getBlock().getRegistryName().getNamespace())) {
                                 if (isCustomInvBlocking(phantom, s)) {
                                     visitedFaces.remove(s);
                                     continue;
                                 }
                             }
                         }
-                    } else if (NonBlockingItems.INSTANCE.getMap().containsKey(
-                            w.getBlockState(tile.getPos().offset(s)).getBlock().getRegistryName().getNamespace())) {
+                    } else if (NonBlockingItems.INSTANCE.getMap().containsKey(w.getBlockState(tile.getPos().offset(s)).getBlock().getRegistryName().getNamespace())) {
                         if (isCustomInvBlocking(te, s)) {
                             visitedFaces.remove(s);
                             continue;
@@ -1193,7 +1189,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
             }
             case LOCK_UNTIL_RESULT -> {
                 unlockEvent = UnlockCraftingEvent.RESULT;
-                unlockStack = pattern.getPrimaryOutput();
+                unlockStack = pattern.getPrimaryOutput().copy();
                 saveChanges();
             }
         }
@@ -1202,7 +1198,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
     /**
      * Gets if the crafting lock is in effect and why.
      *
-     * @return null if the lock isn't in effect
+     * @return {@link LockCraftingMode#NONE} if the lock isn't in effect
      */
     public LockCraftingMode getCraftingLockedReason() {
         var lockMode = cm.getSetting(Settings.UNLOCK);
@@ -1501,7 +1497,13 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
                 }
 
                 if (what.getItem() != Items.AIR) {
-                    return what.getItem().getItemStackDisplayName(what);
+                    /* getTranslationKey() and getUnlocalizedNameInefficiently() have different return values in some mod
+                     * For the Thermal Expansion
+                     * getTranslationKey() returns complete key ending with ".name".
+                     * getUnlocalizedNameInefficiently() returns localized name
+                     * Because CoFH Core overrides method getTranslationKey()
+                     */
+                    return what.getItem().getTranslationKey(what);
                 }
 
                 final Item item = Item.getItemFromBlock(directedBlock);
@@ -1567,7 +1569,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
     /**
      * @return Null if {@linkplain #getCraftingLockedReason()} is not {@link LockCraftingMode#LOCK_UNTIL_RESULT}.
      */
-    @org.jetbrains.annotations.Nullable
+    @Nullable
     public IAEItemStack getUnlockStack() {
         return unlockStack;
     }
@@ -1581,7 +1583,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
             // Actually an error state...
             AELog.error("MEInterface was waiting for RESULT, but no result was set");
             unlockEvent = null;
-        } else if (unlockStack.getItem().equals(stack.getItem())) {
+        } else if (unlockStack.isSameType(stack)) {
             var remainingAmount = unlockStack.getStackSize() - stack.getStackSize();
             if (remainingAmount <= 0) {
                 unlockEvent = null;

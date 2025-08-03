@@ -117,6 +117,8 @@ public enum GuiBridge implements IGuiHandler {
             GuiHostType.ITEM, null),
     GUI_WIRELESS_FLUID_TERMINAL(ContainerWirelessFluidTerminal.class, WirelessTerminalGuiObject.class, GuiHostType.ITEM,
             null),
+    GUI_WIRELESS_INTERFACE_TERMINAL(ContainerWirelessInterfaceTerminal.class, WirelessTerminalGuiObject.class, GuiHostType.ITEM,
+            null),
 
     GUI_NETWORK_STATUS(ContainerNetworkStatus.class, INetworkTool.class, GuiHostType.ITEM, null),
 

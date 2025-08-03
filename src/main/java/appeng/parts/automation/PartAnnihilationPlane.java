@@ -18,16 +18,28 @@
 
 package appeng.parts.automation;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.google.common.collect.Lists;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Enchantments;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -35,6 +47,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.FakePlayerFactory;
 
 import appeng.api.AEApi;
 import appeng.api.config.Actionable;
@@ -65,8 +79,10 @@ import appeng.items.parts.PartModels;
 import appeng.me.GridAccessException;
 import appeng.me.helpers.MachineSource;
 import appeng.parts.PartBasicState;
+import appeng.util.EnchantmentUtil;
 import appeng.util.IWorldCallable;
 import appeng.util.Platform;
+import appeng.util.SettingsFrom;
 import appeng.util.item.AEItemStack;
 
 public class PartAnnihilationPlane extends PartBasicState implements IGridTickable, IWorldCallable<TickRateModulation> {
@@ -82,6 +98,12 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
     private final IActionSource mySrc = new MachineSource(this);
     private boolean isAccepting = true;
     private boolean breaking = false;
+
+    /**
+     * Enchantments found on the plane when it was placed will be used to enchant the fake tool used for picking up
+     * blocks.
+     */
+    private Map<Enchantment, Integer> enchantments = new LinkedHashMap<>();
 
     public PartAnnihilationPlane(final ItemStack is) {
         super(is);
@@ -380,7 +402,7 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
                     if (hasPower && canStore) {
                         if (modulate) {
                             energy.extractAEPower(requiredPower, Actionable.MODULATE, PowerMultiplier.CONFIG);
-                            this.breakBlockAndStoreItems(w, pos);
+                            this.breakBlockAndStoreItems(w, pos, items);
                             AppEng.proxy.sendToAllNearExcept(null, pos.getX(), pos.getY(), pos.getZ(), 64, w,
                                     new PacketTransitionEffect(pos.getX(), pos.getY(), pos.getZ(), this.getSide(),
                                             true));
@@ -437,14 +459,33 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
     }
 
     protected List<ItemStack> obtainBlockDrops(final WorldServer w, final BlockPos pos) {
-        final ItemStack[] out = Platform.getBlockDrops(w, pos);
-        return Lists.newArrayList(out);
+        final FakePlayer fakePlayer = FakePlayerFactory.getMinecraft(w);
+        final IBlockState state = w.getBlockState(pos);
+
+        if (state.getBlock().canSilkHarvest(w, pos, state, fakePlayer) && enchantments.containsKey(Enchantments.SILK_TOUCH)) {
+            final List<ItemStack> out = new ArrayList<>(1);
+            final Item item = Item.getItemFromBlock(state.getBlock());
+
+            if (item != Items.AIR) {
+                int meta = 0;
+                if (item.getHasSubtypes()) {
+                    meta = state.getBlock().getMetaFromState(state);
+                }
+                final ItemStack itemstack = new ItemStack(item, 1, meta);
+                out.add(itemstack);
+            }
+            return out;
+        } else {
+            final ItemStack[] out = Platform.getBlockDrops(w, pos, enchantments.getOrDefault(Enchantments.FORTUNE, 0));
+            return Lists.newArrayList(out);
+        }
     }
 
     /**
      * Checks if this plane can handle the block at the specific coordinates.
      */
     protected float calculateEnergyUsage(final WorldServer w, final BlockPos pos, final List<ItemStack> items) {
+        boolean useEnergy = true;
         final IBlockState state = w.getBlockState(pos);
         final float hardness = state.getBlockHardness(w, pos);
 
@@ -453,7 +494,25 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
             requiredEnergy += is.getCount();
         }
 
-        return requiredEnergy;
+        if (!enchantments.isEmpty()) {
+            var efficiencyFactor = 1f;
+            var efficiencyLevel = 0;
+            if (enchantments.containsKey(Enchantments.EFFICIENCY)) {
+                // Reduce total energy usage incurred by other enchantments by 15% per Efficiency level.
+                efficiencyLevel = enchantments.get(Enchantments.EFFICIENCY);
+                efficiencyFactor *= Math.pow(0.85, efficiencyLevel);
+            }
+            if (enchantments.containsKey(Enchantments.UNBREAKING)) {
+                // Give plane only a (100 / (level + 1))% chance to use energy.
+                // This is similar to vanilla Unbreaking behaviour for tools.
+                int randomNumber = ThreadLocalRandom.current().nextInt(enchantments.get(Enchantments.UNBREAKING) + 1);
+                useEnergy = randomNumber == 0;
+            }
+            var levelSum = enchantments.values().stream().reduce(0, Integer::sum) - efficiencyLevel;
+            requiredEnergy *= 8 * levelSum * efficiencyFactor;
+        }
+
+        return useEnergy ? requiredEnergy : 0;
     }
 
     /**
@@ -462,10 +521,10 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
      * It also sets isAccepting to false, if the item can not be stored.
      *
      * @param itemStacks an array of {@link ItemStack} to test
-     * @return true, if the network can store at least a single item of all drops or no drops are reported
+     * @return true, if the network can store all drops or no drops are reported
      */
     private boolean canStoreItemStacks(final List<ItemStack> itemStacks) {
-        boolean canStore = itemStacks.isEmpty();
+        boolean canStore = true;
 
         try {
             final IStorageGrid storage = this.getProxy().getStorage();
@@ -475,8 +534,8 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
                 final IAEItemStack overflow = storage
                         .getInventory(AEApi.instance().storage().getStorageChannel(IItemStorageChannel.class))
                         .injectItems(itemToTest, Actionable.SIMULATE, this.mySrc);
-                if (overflow == null || itemToTest.getStackSize() > overflow.getStackSize()) {
-                    canStore = true;
+                if (overflow != null) {
+                    canStore = false;
                 }
             }
         } catch (final GridAccessException e) {
@@ -487,16 +546,17 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
         return canStore;
     }
 
-    private void breakBlockAndStoreItems(final WorldServer w, final BlockPos pos) {
-        w.destroyBlock(pos, true);
+    private void breakBlockAndStoreItems(final WorldServer w, final BlockPos pos, List<ItemStack> items) {
+        for (ItemStack item : items) {
+            Block.spawnAsEntity(w, pos, item);
+        }
 
         final AxisAlignedBB box = new AxisAlignedBB(pos).grow(0.2);
-        for (final Object ei : w.getEntitiesWithinAABB(EntityItem.class, box)) {
-            if (ei instanceof EntityItem) {
-                final EntityItem entityItem = (EntityItem) ei;
-                this.storeEntityItem(entityItem);
-            }
+        for (EntityItem entityItem : w.getEntitiesWithinAABB(EntityItem.class, box)) {
+            this.storeEntityItem(entityItem);
         }
+
+        w.destroyBlock(pos, false);
     }
 
     private void refresh() {
@@ -512,6 +572,53 @@ public class PartAnnihilationPlane extends PartBasicState implements IGridTickab
     @Override
     public IPartModel getStaticModels() {
         return MODELS.getModel(this.getConnections(), this.isPowered(), this.isActive());
+    }
+
+    @Override
+    protected NBTTagCompound downloadSettings(SettingsFrom from, NBTTagCompound output) {
+        super.downloadSettings(from, output);
+        // Save enchants only when the actual plane is dismantled
+        if (from == SettingsFrom.DISMANTLE_ITEM) {
+            writeEnchantments(output);
+        }
+
+        return output;
+    }
+
+    @Override
+    public void uploadSettings(SettingsFrom from, NBTTagCompound output, EntityPlayer player) {
+        super.uploadSettings(from, output, player);
+        // Import enchants only when the plan is placed, not from memory cards
+        if (from == SettingsFrom.DISMANTLE_ITEM) {
+            readEnchantments(output);
+        }
+    }
+
+    public void readEnchantments(NBTTagCompound data) {
+        enchantments = EnchantmentUtil.getEnchantments(data);
+        EnchantmentHelper.setEnchantments(enchantments, getItemStack());
+    }
+
+    public void writeEnchantments(NBTTagCompound data) {
+        EnchantmentUtil.setEnchantments(data, enchantments);
+    }
+
+    @Override
+    public void readFromNBT(NBTTagCompound data) {
+        super.readFromNBT(data);
+        readEnchantments(data);
+    }
+
+    @Override
+    public void writeToNBT(NBTTagCompound data) {
+        super.writeToNBT(data);
+        writeEnchantments(data);
+    }
+
+    @Override
+    public void addToWorld() {
+        super.addToWorld();
+        enchantments = EnchantmentHelper.getEnchantments(getItemStack());
     }
 
 }

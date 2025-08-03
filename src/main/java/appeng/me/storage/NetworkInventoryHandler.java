@@ -25,6 +25,7 @@ import appeng.api.config.Actionable;
 import appeng.api.config.SecurityPermissions;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
+import appeng.api.networking.crafting.ICraftingGrid;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.security.ISecurityGrid;
 import appeng.api.storage.IMEInventoryHandler;
@@ -42,6 +43,7 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
     private static int currentPass = 0;
     private final IStorageChannel<T> myChannel;
     private final SecurityCache security;
+    private final NavigableMap<Integer, List<IMEInventoryHandler<T>>> craftingPriorityInventory;
     private final NavigableMap<Integer, List<IMEInventoryHandler<T>>> priorityInventory;
     private final NavigableMap<Integer, List<IMEInventoryHandler<T>>> stickyPriorityInventory;
     private int myPass = 0;
@@ -51,19 +53,22 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
         this.security = security;
         this.priorityInventory = new TreeMap<>(PRIORITY_SORTER);
         this.stickyPriorityInventory = new TreeMap<>(PRIORITY_SORTER);
+        this.craftingPriorityInventory = new TreeMap<>(PRIORITY_SORTER);
     }
 
     public void addNewStorage(final IMEInventoryHandler<T> h) {
         final int priority = h.getPriority();
 
-        final List<IMEInventoryHandler<T>> list;
-        if (h.isSticky()) {
-            list = this.stickyPriorityInventory.computeIfAbsent(priority, $ -> new ArrayList<>());
+        final NavigableMap<Integer, List<IMEInventoryHandler<T>>> list;
+        if (h instanceof ICraftingGrid) {
+            list = this.craftingPriorityInventory;
+        } else if (h.isSticky()) {
+            list = this.stickyPriorityInventory;
         } else {
-            list = this.priorityInventory.computeIfAbsent(priority, $ -> new ArrayList<>());
+            list = this.priorityInventory;
         }
 
-        list.add(h);
+        list.computeIfAbsent(priority, $ -> new ArrayList<>()).add(h);
     }
 
     @Override
@@ -73,6 +78,24 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
         }
 
         if (this.testPermission(src, SecurityPermissions.INJECT)) {
+            this.surface(this, type);
+            return input;
+        }
+
+        // First pass. Check if the crafting grid is awaiting the input.
+        for (final List<IMEInventoryHandler<T>> invList : this.craftingPriorityInventory.values()) {
+            Iterator<IMEInventoryHandler<T>> ii = invList.iterator();
+            while (ii.hasNext() && input != null) {
+                final IMEInventoryHandler<T> inv = ii.next();
+
+                if (inv.canAccept(input) && (inv.isPrioritized(input) || inv.extractItems(input, Actionable.SIMULATE, src) != null)) {
+                    input = inv.injectItems(input, type, src);
+                }
+            }
+        }
+
+        // If everything got stored in the crafting storage, no need to continue.
+        if (input == null) {
             this.surface(this, type);
             return input;
         }
@@ -112,7 +135,6 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
             // We need to ignore prioritized inventories in the second pass. If they were not able to store everything
             // during the first pass, they will do so in the second, but as this is stateless we will just report twice
             // the amount of storable items.
-            // ignores craftingcache on the second pass.
             ii = invList.iterator();
             while (ii.hasNext() && input != null) {
                 final IMEInventoryHandler<T> inv = ii.next();
@@ -235,23 +257,21 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
             return out;
         }
 
-        out = iterateInventories(out, priorityInventory);
-        out = iterateInventories(out, stickyPriorityInventory);
+        iterateInventories(out, priorityInventory);
+        iterateInventories(out, stickyPriorityInventory);
+        iterateInventories(out, craftingPriorityInventory);
 
         this.surface(this, Actionable.SIMULATE);
 
         return out;
     }
 
-    private IItemList<T> iterateInventories(IItemList<T> out,
-            final NavigableMap<Integer, List<IMEInventoryHandler<T>>> map) {
+    private void iterateInventories(IItemList<T> out, final NavigableMap<Integer, List<IMEInventoryHandler<T>>> map) {
         for (final List<IMEInventoryHandler<T>> i : map.values()) {
             for (final IMEInventoryHandler<T> j : i) {
-                out = j.getAvailableItems(out);
+                j.getAvailableItems(out);
             }
         }
-
-        return out;
     }
 
     private boolean diveIteration(final NetworkInventoryHandler<T> networkInventoryHandler, final Actionable type) {

@@ -11,7 +11,9 @@ public enum Terminal {
     WIRELESS_PATTERN_TERMINAL(AEApi.instance().definitions().items().wirelessPatternTerminal(),
             GuiBridge.GUI_WIRELESS_PATTERN_TERMINAL),
     WIRELESS_FLUID_TERMINAL(AEApi.instance().definitions().items().wirelessFluidTerminal(),
-            GuiBridge.GUI_WIRELESS_FLUID_TERMINAL);
+            GuiBridge.GUI_WIRELESS_FLUID_TERMINAL),
+    WIRELESS_INTERFACE_TERMINAL(AEApi.instance().definitions().items().wirelessInterfaceTerminal(),
+            GuiBridge.GUI_INTERFACE_TERMINAL);
 
     final GuiBridge bridge;
     final IItemDefinition itemDefinition;

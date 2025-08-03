@@ -231,8 +231,8 @@ public class DualityFluidInterface implements IGridTickable, IStorageMonitorable
             this.fluids.setInternal(this.gridProxy.getStorage()
                     .getInventory(AEApi.instance().storage().getStorageChannel(IFluidStorageChannel.class)));
         } catch (final GridAccessException gae) {
-            this.items.setInternal(new NullInventory<IAEItemStack>());
-            this.fluids.setInternal(new NullInventory<IAEFluidStack>());
+            this.items.setInternal(new NullInventory<>());
+            this.fluids.setInternal(new NullInventory<>());
         }
 
         this.notifyNeighbors();
@@ -500,6 +500,16 @@ public class DualityFluidInterface implements IGridTickable, IStorageMonitorable
 
         this.isWorking = -1;
         return changed;
+    }
+
+    @Override
+    public void onFluidInventoryChanged(final IAEFluidTank inventory, FluidStack added, FluidStack removed) {
+        if (inventory == this.tanks) {
+            if (added != null) {
+                iHost.onStackReturnNetwork(AEFluidStack.fromFluidStack(added));
+            }
+            this.saveChanges();
+        }
     }
 
     @Override

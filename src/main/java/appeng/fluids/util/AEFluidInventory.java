@@ -13,7 +13,7 @@ import appeng.util.inv.InvOperation;
 
 public class AEFluidInventory implements IAEFluidTank {
     private final IAEFluidStack[] fluids;
-    private final IAEFluidInventory handler;
+    protected final IAEFluidInventory handler;
     private int capacity;
     private IFluidTankProperties[] props = null;
 

@@ -18,17 +18,10 @@
 
 package appeng.client;
 
-import static appeng.client.KeyBindings.WCT;
-import static appeng.client.KeyBindings.WFT;
-import static appeng.client.KeyBindings.WPT;
-import static appeng.client.KeyBindings.WT;
+import static appeng.client.KeyBindings.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 import org.lwjgl.input.Mouse;
 
@@ -355,6 +348,8 @@ public class ClientHelper extends ServerHelper {
                     NetworkHandler.instance().sendToServer(new PacketTerminalUse(Terminal.WIRELESS_PATTERN_TERMINAL));
                 } else if (k == WFT.getKeyBinding()) {
                     NetworkHandler.instance().sendToServer(new PacketTerminalUse(Terminal.WIRELESS_FLUID_TERMINAL));
+                } else if (k == WIT.getKeyBinding()) {
+                    NetworkHandler.instance().sendToServer(new PacketTerminalUse(Terminal.WIRELESS_INTERFACE_TERMINAL));
                 }
             }
         }

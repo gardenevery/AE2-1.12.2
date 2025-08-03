@@ -5,7 +5,9 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 
-public abstract class GuiCustomSlot extends Gui implements ITooltip {
+import appeng.container.interfaces.ISpecialSlotIngredient;
+
+public abstract class GuiCustomSlot extends Gui implements ITooltip, ISpecialSlotIngredient {
     protected final int x;
     protected final int y;
     protected final int id;
@@ -64,6 +66,11 @@ public abstract class GuiCustomSlot extends Gui implements ITooltip {
 
     public boolean isSlotEnabled() {
         return true;
+    }
+
+    @Override
+    public Object getIngredient() {
+        return null;
     }
 
 }

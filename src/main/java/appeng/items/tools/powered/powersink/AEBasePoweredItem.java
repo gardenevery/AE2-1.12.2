@@ -18,7 +18,6 @@
 
 package appeng.items.tools.powered.powersink;
 
-import java.text.MessageFormat;
 import java.util.List;
 
 import net.minecraft.client.util.ITooltipFlag;
@@ -33,9 +32,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import appeng.api.config.AccessRestriction;
 import appeng.api.config.Actionable;
-import appeng.api.config.PowerUnits;
 import appeng.api.implementations.items.IAEItemPowerStorage;
-import appeng.core.localization.GuiText;
+import appeng.core.localization.Tooltips;
 import appeng.items.AEBaseItem;
 import appeng.util.Platform;
 
@@ -65,12 +63,8 @@ public abstract class AEBasePoweredItem extends AEBaseItem implements IAEItemPow
             internalCurrentPower = tag.getDouble(CURRENT_POWER_NBT_KEY);
         }
 
-        final double percent = internalCurrentPower / internalMaxPower;
-
-        lines.add(GuiText.StoredEnergy.getLocal() + ':' + MessageFormat.format(" {0,number,#} ", internalCurrentPower)
-                + Platform
-                        .gui_localize(PowerUnits.AE.unlocalizedName)
-                + " - " + MessageFormat.format(" {0,number,#.##%} ", percent));
+        lines.add(
+                Tooltips.energyStorageComponent(internalCurrentPower, internalMaxPower).getFormattedText());
     }
 
     @Override

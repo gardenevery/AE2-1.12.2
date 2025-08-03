@@ -50,6 +50,7 @@ import appeng.core.sync.packets.PacketInventoryAction;
 import appeng.helpers.DualityInterface;
 import appeng.helpers.IInterfaceHost;
 import appeng.helpers.InventoryAction;
+import appeng.helpers.WirelessTerminalGuiObject;
 import appeng.items.misc.ItemEncodedPattern;
 import appeng.parts.misc.PartInterface;
 import appeng.parts.reporting.PartInterfaceTerminal;
@@ -64,7 +65,7 @@ import appeng.util.inv.WrapperFilteredItemHandler;
 import appeng.util.inv.WrapperRangeItemHandler;
 import appeng.util.inv.filter.IAEItemFilter;
 
-public final class ContainerInterfaceTerminal extends AEBaseContainer {
+public class ContainerInterfaceTerminal extends AEBaseContainer {
 
     /**
      * this stuff is all server side..
@@ -84,6 +85,21 @@ public final class ContainerInterfaceTerminal extends AEBaseContainer {
         }
 
         this.bindPlayerInventory(ip, 0, 0);
+    }
+
+    public ContainerInterfaceTerminal(final InventoryPlayer ip, final WirelessTerminalGuiObject guiObject, boolean bindInventory) {
+        super(ip, guiObject);
+
+        if (Platform.isServer()) {
+            IGridNode node = guiObject.getActionableNode();
+            if (node != null && node.isActive()) {
+                this.grid = node.getGrid();
+            }
+        }
+
+        if (bindInventory) {
+            this.bindPlayerInventory(ip, 0, 0);
+        }
     }
 
     @Override

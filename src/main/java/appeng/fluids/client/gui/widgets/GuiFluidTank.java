@@ -152,4 +152,9 @@ public class GuiFluidTank extends GuiCustomSlot implements ITooltip {
         }
     }
 
+    @Override
+    public Object getIngredient() {
+        return this.getFluidStack() == null ? null : this.getFluidStack().getFluidStack();
+    }
+
 }

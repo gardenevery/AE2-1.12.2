@@ -20,6 +20,7 @@ package appeng.core.features.registries.inscriber;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -60,8 +61,8 @@ public class InscriberRecipe implements IInscriberRecipe {
         this.inputs.addAll(inputs);
 
         this.output = output;
-        this.maybeTop = top;
-        this.maybeBot = bot;
+        this.maybeTop = top == null || top.isEmpty() ? Collections.emptyList() : top;
+        this.maybeBot = bot == null || bot.isEmpty() ? Collections.emptyList() : bot;
 
         this.type = type;
     }
