@@ -177,7 +177,9 @@ public interface IGridNode {
     <T extends IGridNodeService> T getService(Class<T> serviceClass);
 
     @Nonnull
-    Object getOwner();
+    default Object getOwner() {
+        return getMachine();
+    }
 
     int getMaxChannels();
 

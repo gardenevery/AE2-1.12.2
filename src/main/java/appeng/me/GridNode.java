@@ -168,13 +168,6 @@ public class GridNode implements IGridNode, IPathItem {
         return services != null ? services.getInstance(serviceClass) : null;
     }
 
-    public <T extends IGridNodeService> void addService(Class<T> serviceClass, T service) {
-        if (services == null) {
-            services = MutableClassToInstanceMap.create();
-        }
-        services.putInstance(serviceClass, service);
-    }
-
     @Override
     public void beginVisit(final IGridVisitor g) {
         final Object tracker = new Object();
