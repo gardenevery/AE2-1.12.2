@@ -1,0 +1,13 @@
+{
+    "__comment": "This block is rendered via TESR, so this is only used for the particle texture.",
+    "forge_marker": 1,
+    "defaults": {
+        "model": "appliedenergistics2:sky_stone_block"
+    },
+    "variants": {
+        "natural": {
+            "true": {},
+            "false": {}
+        }
+    }
+}

@@ -1,6 +1,6 @@
 {
-	"pack": {
-		"description": "${mod_name} Resources",
-		"pack_format": 3
-	}
+  "pack": {
+    "pack_format": 3,
+    "description": "Resources used for AE2 Unofficial Extended Life"
+  }
 }

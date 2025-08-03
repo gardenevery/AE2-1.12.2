@@ -1,0 +1,10 @@
+{
+    "variants": {
+        "powered=false": {
+            "model": "appliedenergistics2:spatial_io_port"
+        },
+        "powered=true": {
+            "model": "appliedenergistics2:spatial_io_port_on"
+        }
+    }
+}
