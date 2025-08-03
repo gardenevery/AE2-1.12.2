@@ -117,6 +117,22 @@ public class AENetworkProxy implements IGridBlock {
         }
     }
 
+    /**
+     * @deprecated Use {@link #onChunkUnloaded()}
+     */
+    @Deprecated
+    public void onChunkUnload() {
+        this.onChunkUnloaded();
+    }
+
+    /**
+     * @deprecated Use {@link #remove()}
+     */
+    @Deprecated
+    public void invalidate() {
+        this.remove();
+    }
+
     public void onReady() {
         this.isReady = true;
 
