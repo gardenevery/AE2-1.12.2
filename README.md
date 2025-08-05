@@ -14,6 +14,9 @@ mods.recipestages.Recipes.setPackageStage("appeng", allStages);
 The second argument allows you to customize which stages exactly you want to be craftable with AE2. Not sure why you would do that, but we support that nonetheless!
 
 ## License
+* ForgeDevEnv
+    - (c) 2022 CleanroomMC
+    - [![License](https://img.shields.io/badge/License-MIT-red.svg?style=flat-square)](https://github.com/CleanroomMC/ForgeDevEnv/blob/master/LICENSE)
 * Applied Energistics 2 API
     - (c) 2013 - 2020 AlgorithmX2 et al
     - [![License](https://img.shields.io/badge/License-MIT-red.svg?style=flat-square)](http://opensource.org/licenses/MIT)
