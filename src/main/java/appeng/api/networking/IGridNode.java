@@ -169,10 +169,6 @@ public interface IGridNode {
      */
     void setPlayerID(int playerID);
 
-    /**
-     * Tries to get a service that was attached to this grid node when it was created. Used by overlay grids such as the
-     * {@link ICraftingGrid}.
-     */
     @Nullable
     <T extends IGridNodeService> T getService(Class<T> serviceClass);
 

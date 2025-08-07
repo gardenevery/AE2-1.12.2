@@ -52,9 +52,6 @@ public interface IGridBlock {
     @Nonnegative
     double getIdlePowerUsage();
 
-    /**
-     * Tests if this path item has the specific grid flag set.
-     */
     boolean hasFlag(GridFlags flag);
 
     /**
