@@ -4,7 +4,6 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 
-import appeng.util.inv.InvOperation;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.wrapper.RangedWrapper;
 
@@ -16,6 +15,7 @@ import appeng.api.storage.IMEInventory;
 import appeng.api.storage.channels.IItemStorageChannel;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.util.inv.IAEAppEngInventory;
+import appeng.util.inv.InvOperation;
 import appeng.util.item.AEItemStack;
 
 public class AppEngNetworkInventory extends AppEngInternalOversizedInventory {

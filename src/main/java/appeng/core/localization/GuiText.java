@@ -211,7 +211,7 @@ public enum GuiText {
     CraftingToastDone,
     CraftingToastCancelled,
 
-    //Used in Lock Crafting,
+    // Used in Lock Crafting,
     CraftingLock,
     NoneLock,
     LowRedstoneLock,

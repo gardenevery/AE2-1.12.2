@@ -1,5 +1,16 @@
 package appeng.container.implementations;
 
+import org.jetbrains.annotations.NotNull;
+
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.ClickType;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.items.IItemHandler;
+
+import baubles.api.BaublesApi;
+
 import appeng.api.config.Actionable;
 import appeng.api.config.PowerMultiplier;
 import appeng.api.implementations.IUpgradeableCellContainer;
@@ -14,16 +25,9 @@ import appeng.tile.inventory.AppEngInternalInventory;
 import appeng.util.Platform;
 import appeng.util.inv.IAEAppEngInventory;
 import appeng.util.inv.InvOperation;
-import baubles.api.BaublesApi;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.ClickType;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.items.IItemHandler;
-import org.jetbrains.annotations.NotNull;
 
-public class ContainerWirelessInterfaceTerminal extends ContainerInterfaceTerminal implements IInventorySlotAware, IUpgradeableCellContainer, IAEAppEngInventory {
+public class ContainerWirelessInterfaceTerminal extends ContainerInterfaceTerminal
+        implements IInventorySlotAware, IUpgradeableCellContainer, IAEAppEngInventory {
     private final WirelessTerminalGuiObject wirelessTerminalGUIObject;
     private final int slot;
     private double powerMultiplier = 0.5;
@@ -32,7 +36,7 @@ public class ContainerWirelessInterfaceTerminal extends ContainerInterfaceTermin
     protected SlotRestrictedInput magnetSlot;
 
     public ContainerWirelessInterfaceTerminal(InventoryPlayer ip, WirelessTerminalGuiObject guiObject) {
-        super(ip, guiObject,false);
+        super(ip, guiObject, false);
 
         if (guiObject != null) {
             final int slotIndex = guiObject.getInventorySlot();
@@ -45,7 +49,7 @@ public class ContainerWirelessInterfaceTerminal extends ContainerInterfaceTermin
             this.slot = -1;
         }
 
-        this.bindPlayerInventory(ip,0,0);
+        this.bindPlayerInventory(ip, 0, 0);
 
         this.wirelessTerminalGUIObject = guiObject;
 
@@ -62,17 +66,21 @@ public class ContainerWirelessInterfaceTerminal extends ContainerInterfaceTermin
             if (wirelessTerminalGUIObject.isBaubleSlot()) {
                 currentItem = BaublesApi.getBaublesHandler(this.getPlayerInv().player).getStackInSlot(this.slot);
             } else {
-                currentItem = this.slot < 0 ? this.getPlayerInv().getCurrentItem() : this.getPlayerInv().getStackInSlot(this.slot);
+                currentItem = this.slot < 0 ? this.getPlayerInv().getCurrentItem()
+                        : this.getPlayerInv().getStackInSlot(this.slot);
             }
 
             if (currentItem.isEmpty()) {
                 this.setValidContainer(false);
-            } else if (!this.wirelessTerminalGUIObject.getItemStack().isEmpty() && currentItem != this.wirelessTerminalGUIObject.getItemStack()) {
+            } else if (!this.wirelessTerminalGUIObject.getItemStack().isEmpty()
+                    && currentItem != this.wirelessTerminalGUIObject.getItemStack()) {
                 if (ItemStack.areItemsEqual(this.wirelessTerminalGUIObject.getItemStack(), currentItem)) {
                     if (wirelessTerminalGUIObject.isBaubleSlot()) {
-                        BaublesApi.getBaublesHandler(this.getPlayerInv().player).setStackInSlot(this.slot, this.wirelessTerminalGUIObject.getItemStack());
+                        BaublesApi.getBaublesHandler(this.getPlayerInv().player).setStackInSlot(this.slot,
+                                this.wirelessTerminalGUIObject.getItemStack());
                     } else {
-                        this.getPlayerInv().setInventorySlotContents(this.slot, this.wirelessTerminalGUIObject.getItemStack());
+                        this.getPlayerInv().setInventorySlotContents(this.slot,
+                                this.wirelessTerminalGUIObject.getItemStack());
                     }
                 } else {
                     this.setValidContainer(false);
@@ -82,7 +90,8 @@ public class ContainerWirelessInterfaceTerminal extends ContainerInterfaceTermin
             // drain 1 ae t
             this.ticks++;
             if (this.ticks > 10) {
-                double ext = this.wirelessTerminalGUIObject.extractAEPower(this.getPowerMultiplier() * this.ticks, Actionable.MODULATE, PowerMultiplier.CONFIG);
+                double ext = this.wirelessTerminalGUIObject.extractAEPower(this.getPowerMultiplier() * this.ticks,
+                        Actionable.MODULATE, PowerMultiplier.CONFIG);
                 if (ext < this.getPowerMultiplier() * this.ticks) {
                     if (Platform.isServer() && this.isValidContainer()) {
                         this.getPlayerInv().player.sendMessage(PlayerMessages.DeviceNotPowered.get());
@@ -100,7 +109,8 @@ public class ContainerWirelessInterfaceTerminal extends ContainerInterfaceTermin
 
                 this.setValidContainer(false);
             } else {
-                this.setPowerMultiplier(AEConfig.instance().wireless_getDrainRate(this.wirelessTerminalGUIObject.getRange()));
+                this.setPowerMultiplier(
+                        AEConfig.instance().wireless_getDrainRate(this.wirelessTerminalGUIObject.getRange()));
             }
 
             super.detectAndSendChanges();
@@ -166,7 +176,8 @@ public class ContainerWirelessInterfaceTerminal extends ContainerInterfaceTermin
     public void setupUpgrades() {
         if (wirelessTerminalGUIObject != null) {
             for (int upgradeSlot = 0; upgradeSlot < availableUpgrades(); upgradeSlot++) {
-                this.magnetSlot = new SlotRestrictedInput(SlotRestrictedInput.PlacableItemType.UPGRADES, upgrades, upgradeSlot, 183, -1 + upgradeSlot * 18, this.getInventoryPlayer());
+                this.magnetSlot = new SlotRestrictedInput(SlotRestrictedInput.PlacableItemType.UPGRADES, upgrades,
+                        upgradeSlot, 183, -1 + upgradeSlot * 18, this.getInventoryPlayer());
                 this.magnetSlot.setNotDraggable();
                 this.addSlotToContainer(magnetSlot);
             }
@@ -192,7 +203,8 @@ public class ContainerWirelessInterfaceTerminal extends ContainerInterfaceTermin
     }
 
     @Override
-    public void onChangeInventory(IItemHandler inv, int slot, InvOperation mc, ItemStack removedStack, ItemStack newStack) {
+    public void onChangeInventory(IItemHandler inv, int slot, InvOperation mc, ItemStack removedStack,
+            ItemStack newStack) {
 
     }
 }

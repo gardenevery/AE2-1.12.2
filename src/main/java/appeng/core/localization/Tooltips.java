@@ -1,12 +1,14 @@
 package appeng.core.localization;
 
-import appeng.api.config.PowerUnits;
-import com.github.bsideup.jabel.Desugar;
-import net.minecraft.util.text.*;
-
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.Arrays;
+
+import com.github.bsideup.jabel.Desugar;
+
+import net.minecraft.util.text.*;
+
+import appeng.api.config.PowerUnits;
 
 /**
  * Static utilities for constructing tooltips in various places.
@@ -23,7 +25,6 @@ public final class Tooltips {
     public static final Style UNIT_TEXT = new Style().setColor(TextFormatting.YELLOW).setItalic(false);
     public static final Style NORMAL_TOOLTIP_TEXT = new Style().setColor(TextFormatting.GRAY).setItalic(false);
     public static final Style NUMBER_TEXT = new Style().setColor(TextFormatting.LIGHT_PURPLE).setItalic(false);
-
 
     public static final String[] units = new String[] { "k", "M", "G", "T", "P", "E" };
     public static final long[] DECIMAL_NUMS = new long[] { 1000L, 1000_000L, 1000_000_000L, 1000_000_000_000L,
@@ -43,7 +44,7 @@ public final class Tooltips {
     }
 
     public static ITextComponent ofPercent(double percent) {
-        return ofPercent(percent,true);
+        return ofPercent(percent, true);
     }
 
     public static ITextComponent ofPercent(double percent, boolean oneIsGreen) {
@@ -67,10 +68,13 @@ public final class Tooltips {
     public static ITextComponent of(GuiText guiText, Style style, Object... args) {
 
         if (args.length > 0 && args[0] instanceof Integer) {
-            return guiText.getLocalizedWithArgs(Arrays.stream(args).map((o) -> ofUnformattedNumber((Integer) o)).toArray()).createCopy()
+            return guiText
+                    .getLocalizedWithArgs(Arrays.stream(args).map((o) -> ofUnformattedNumber((Integer) o)).toArray())
+                    .createCopy()
                     .setStyle(style);
         } else if (args.length > 0 && args[0] instanceof Long) {
-            return guiText.getLocalizedWithArgs(Arrays.stream(args).map((o) -> ofUnformattedNumber((Long) o)).toArray()).createCopy()
+            return guiText.getLocalizedWithArgs(Arrays.stream(args).map((o) -> ofUnformattedNumber((Long) o)).toArray())
+                    .createCopy()
                     .setStyle(style);
         }
         return guiText.getLocalizedWithArgs(args).createCopy().setStyle(style);
@@ -92,6 +96,7 @@ public final class Tooltips {
                         .setStyle(NORMAL_TOOLTIP_TEXT))
                 .appendText(number.maxDigit() + number.unit()).setStyle(NUMBER_TEXT);
     }
+
     @Desugar
     public record MaxedAmount(String digit, String maxDigit, String unit) {
     }

@@ -100,7 +100,7 @@ public class ContainerInterface extends ContainerUpgradeable implements IOptiona
             this.myDuality.dropExcessPatterns();
         }
 
-        if (Platform.isServer()){
+        if (Platform.isServer()) {
             lockReason = myDuality.getCraftingLockedReason();
         }
         super.detectAndSendChanges();

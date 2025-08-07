@@ -1,9 +1,10 @@
 package appeng.items.tools.powered;
 
-import appeng.api.AEApi;
-import appeng.core.sync.GuiBridge;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.network.IGuiHandler;
+
+import appeng.api.AEApi;
+import appeng.core.sync.GuiBridge;
 
 public class ToolWirelessInterfaceTerminal extends ToolWirelessTerminal {
     @Override

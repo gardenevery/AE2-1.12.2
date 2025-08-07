@@ -1,8 +1,9 @@
 package appeng.client.gui.implementations;
 
-import appeng.helpers.WirelessTerminalGuiObject;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.entity.player.InventoryPlayer;
+
+import appeng.helpers.WirelessTerminalGuiObject;
 
 public class GuiWirelessInterfaceTerminal extends GuiInterfaceTerminal {
     public GuiWirelessInterfaceTerminal(InventoryPlayer inventoryPlayer, final WirelessTerminalGuiObject te) {

@@ -436,7 +436,7 @@ public class Platform {
     }
 
     public static ItemStack[] getBlockDrops(final World w, final BlockPos pos) {
-        return getBlockDrops(w, pos,0);
+        return getBlockDrops(w, pos, 0);
     }
 
     public static ItemStack[] getBlockDrops(final World w, final BlockPos pos, int fortune) {

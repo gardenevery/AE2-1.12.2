@@ -45,9 +45,11 @@ public class ApiClientHelper implements IClientHelper {
         final ICellInventory<?> cellInventory = handler.getCellInv();
 
         if (cellInventory != null) {
-            lines.add(Tooltips.bytesUsed(cellInventory.getUsedBytes(),cellInventory.getTotalBytes()).getFormattedText());
+            lines.add(
+                    Tooltips.bytesUsed(cellInventory.getUsedBytes(), cellInventory.getTotalBytes()).getFormattedText());
 
-            lines.add(Tooltips.typesUsed(cellInventory.getStoredItemTypes(),cellInventory.getTotalItemTypes()).getFormattedText());
+            lines.add(Tooltips.typesUsed(cellInventory.getStoredItemTypes(), cellInventory.getTotalItemTypes())
+                    .getFormattedText());
         }
 
         IItemList<?> itemList = cellInventory.getChannel().createList();

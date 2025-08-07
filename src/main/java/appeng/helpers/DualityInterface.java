@@ -1032,7 +1032,8 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 
     @Override
     public boolean pushPattern(final ICraftingPatternDetails patternDetails, final InventoryCrafting table) {
-        if (this.hasItemsToSend() || this.hasItemsToSendFacing() || !this.gridProxy.isActive() || !this.craftingList.contains(patternDetails)) {
+        if (this.hasItemsToSend() || this.hasItemsToSendFacing() || !this.gridProxy.isActive()
+                || !this.craftingList.contains(patternDetails)) {
             return false;
         }
 
@@ -1074,10 +1075,13 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 
                     IStorageMonitorable sm = mon.getInventory(this.mySource);
                     if (sm != null && Platform.canAccess(proxyable.getProxy(), this.mySource)) {
-                        if (this.isBlocking() && !sm.getInventory(AEApi.instance().storage().getStorageChannel(IItemStorageChannel.class)).getStorageList().isEmpty()) {
+                        if (this.isBlocking() && !sm
+                                .getInventory(AEApi.instance().storage().getStorageChannel(IItemStorageChannel.class))
+                                .getStorageList().isEmpty()) {
                             continue;
                         } else {
-                            IMEMonitor<IAEItemStack> inv = sm.getInventory(AEApi.instance().storage().getStorageChannel(IItemStorageChannel.class));
+                            IMEMonitor<IAEItemStack> inv = sm.getInventory(
+                                    AEApi.instance().storage().getStorageChannel(IItemStorageChannel.class));
 
                             var allItemsCanBeInserted = true;
                             for (int x = 0; x < table.getSizeInventory(); x++) {
@@ -1085,7 +1089,8 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
                                 if (is.isEmpty()) {
                                     continue;
                                 }
-                                IAEItemStack result = inv.injectItems(AEItemStack.fromItemStack(is), Actionable.SIMULATE, this.mySource);
+                                IAEItemStack result = inv.injectItems(AEItemStack.fromItemStack(is),
+                                        Actionable.SIMULATE, this.mySource);
                                 if (result != null) {
                                     allItemsCanBeInserted = false;
                                     break;
@@ -1134,14 +1139,17 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
                         phantomTE = ((IPhantomTile) te);
                         if (phantomTE.hasBoundPosition()) {
                             TileEntity phantom = w.getTileEntity(phantomTE.getBoundPosition());
-                            if (NonBlockingItems.INSTANCE.getMap().containsKey(w.getBlockState(phantomTE.getBoundPosition()).getBlock().getRegistryName().getNamespace())) {
+                            if (NonBlockingItems.INSTANCE.getMap()
+                                    .containsKey(w.getBlockState(phantomTE.getBoundPosition()).getBlock()
+                                            .getRegistryName().getNamespace())) {
                                 if (isCustomInvBlocking(phantom, s)) {
                                     visitedFaces.remove(s);
                                     continue;
                                 }
                             }
                         }
-                    } else if (NonBlockingItems.INSTANCE.getMap().containsKey(w.getBlockState(tile.getPos().offset(s)).getBlock().getRegistryName().getNamespace())) {
+                    } else if (NonBlockingItems.INSTANCE.getMap().containsKey(
+                            w.getBlockState(tile.getPos().offset(s)).getBlock().getRegistryName().getNamespace())) {
                         if (isCustomInvBlocking(te, s)) {
                             visitedFaces.remove(s);
                             continue;
@@ -1497,11 +1505,11 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
                 }
 
                 if (what.getItem() != Items.AIR) {
-                    /* getTranslationKey() and getUnlocalizedNameInefficiently() have different return values in some mod
-                     * For the Thermal Expansion
-                     * getTranslationKey() returns complete key ending with ".name".
-                     * getUnlocalizedNameInefficiently() returns localized name
-                     * Because CoFH Core overrides method getTranslationKey()
+                    /*
+                     * getTranslationKey() and getUnlocalizedNameInefficiently() have different return values in some
+                     * mod For the Thermal Expansion getTranslationKey() returns complete key ending with ".name".
+                     * getUnlocalizedNameInefficiently() returns localized name Because CoFH Core overrides method
+                     * getTranslationKey()
                      */
                     return what.getItem().getTranslationKey(what);
                 }

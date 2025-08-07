@@ -25,14 +25,8 @@ package appeng.api.networking;
 
 import javax.annotation.Nonnull;
 
-import appeng.api.networking.crafting.ICraftingGrid;
-import appeng.api.networking.energy.IEnergyGrid;
 import appeng.api.networking.events.MENetworkEvent;
 import appeng.api.networking.pathing.IPathingGrid;
-import appeng.api.networking.security.ISecurityGrid;
-import appeng.api.networking.spatial.ISpatialCache;
-import appeng.api.networking.storage.IStorageGrid;
-import appeng.api.networking.ticking.ITickManager;
 import appeng.api.util.IReadOnlyCollection;
 
 /**

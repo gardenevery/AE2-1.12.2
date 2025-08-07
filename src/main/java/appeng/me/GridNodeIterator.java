@@ -27,8 +27,7 @@ import appeng.api.networking.IGridNode;
 /**
  * Nested iterator for {@link MachineSet}
  *
- * Traverses first over the {@link MachineSet} and then over every containing
- * {@link IGridNode}
+ * Traverses first over the {@link MachineSet} and then over every containing {@link IGridNode}
  */
 public class GridNodeIterator implements Iterator<IGridNode> {
     private final Iterator<MachineSet> outerIterator;

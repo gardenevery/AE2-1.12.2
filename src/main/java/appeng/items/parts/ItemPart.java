@@ -149,7 +149,7 @@ public final class ItemPart extends AEBaseItem implements IPartItem, IItemGroup 
 
         if (player.isSneaking() && typeByStack == PartType.IDENTITY_ANNIHILATION_PLANE) {
             ItemStack newPlane = new ItemStack(this, heldItem.getCount(), PartType.ANNIHILATION_PLANE.getBaseDamage());
-            newPlane.addEnchantment(Enchantments.SILK_TOUCH,1);
+            newPlane.addEnchantment(Enchantments.SILK_TOUCH, 1);
 
             player.setHeldItem(hand, newPlane);
             return EnumActionResult.SUCCESS;
@@ -197,13 +197,13 @@ public final class ItemPart extends AEBaseItem implements IPartItem, IItemGroup 
     }
 
     @Override
-    protected void addCheckedInformation(ItemStack stack, World world, List<String> lines, ITooltipFlag advancedTooltips) {
+    protected void addCheckedInformation(ItemStack stack, World world, List<String> lines,
+            ITooltipFlag advancedTooltips) {
         if (getTypeByStack(stack) == PartType.ANNIHILATION_PLANE) {
             var enchantments = EnchantmentHelper.getEnchantments(stack);
             if (enchantments.isEmpty()) {
                 lines.add(GuiText.CanBeEnchanted.getLocal());
-            }
-            else {
+            } else {
                 lines.add(GuiText.IncreasedEnergyUseFromEnchants.getLocal());
             }
         }
@@ -225,7 +225,8 @@ public final class ItemPart extends AEBaseItem implements IPartItem, IItemGroup 
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return enchantment == Enchantments.UNBREAKING || enchantment == Enchantments.FORTUNE || enchantment == Enchantments.SILK_TOUCH || enchantment == Enchantments.EFFICIENCY;
+        return enchantment == Enchantments.UNBREAKING || enchantment == Enchantments.FORTUNE
+                || enchantment == Enchantments.SILK_TOUCH || enchantment == Enchantments.EFFICIENCY;
     }
 
     @Override

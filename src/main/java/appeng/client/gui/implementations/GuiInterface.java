@@ -80,7 +80,8 @@ public class GuiInterface extends GuiUpgradeable {
         if (lockReason != null) {
             labelList.remove(this.lockReason);
         }
-        this.lockReason = new GuiImgLabel(this.fontRenderer, guiLeft + 40, guiTop + 12, Settings.UNLOCK, LockCraftingMode.NONE);
+        this.lockReason = new GuiImgLabel(this.fontRenderer, guiLeft + 40, guiTop + 12, Settings.UNLOCK,
+                LockCraftingMode.NONE);
         labelList.add(lockReason);
     }
 

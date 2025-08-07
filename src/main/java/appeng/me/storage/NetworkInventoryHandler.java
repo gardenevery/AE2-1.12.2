@@ -88,7 +88,8 @@ public class NetworkInventoryHandler<T extends IAEStack<T>> implements IMEInvent
             while (ii.hasNext() && input != null) {
                 final IMEInventoryHandler<T> inv = ii.next();
 
-                if (inv.canAccept(input) && (inv.isPrioritized(input) || inv.extractItems(input, Actionable.SIMULATE, src) != null)) {
+                if (inv.canAccept(input)
+                        && (inv.isPrioritized(input) || inv.extractItems(input, Actionable.SIMULATE, src) != null)) {
                     input = inv.injectItems(input, type, src);
                 }
             }

@@ -91,7 +91,8 @@ public class PartIdentityAnnihilationPlane extends PartAnnihilationPlane {
         TileEntity tile = getTile();
         if (tile instanceof IPartHost host) {
             host.removePart(getSide(), false);
-            ItemStack itemStack = AEApi.instance().definitions().parts().annihilationPlane().maybeStack(1).orElse(ItemStack.EMPTY);
+            ItemStack itemStack = AEApi.instance().definitions().parts().annihilationPlane().maybeStack(1)
+                    .orElse(ItemStack.EMPTY);
             itemStack.addEnchantment(Enchantments.SILK_TOUCH, 1);
             host.addPart(itemStack, getSide(), player, hand);
             return true;
