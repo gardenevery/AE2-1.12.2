@@ -199,7 +199,9 @@ public class AENetworkProxy implements IGridBlock {
     @Override
     public void onGridNotification(final GridNotification notification) {
         if (notification == GridNotification.OWNER_CHANGED) {
-            gp.saveChanges();
+            if (gp != null && !gp.getClass().getName().contains("threng")) {
+                gp.saveChanges();
+            }
             return;
         }
 
