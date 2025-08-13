@@ -25,11 +25,13 @@ package appeng.api.storage;
 
 import java.util.List;
 
+import appeng.api.networking.IGridNodeService;
+
 /**
  * Allows you to provide cells via non IGridHosts directly to the storage system, drives, and similar features should go
  * though {@link ICellContainer} and be automatically handled by the storage system.
  */
-public interface ICellProvider {
+public interface ICellProvider extends IGridNodeService {
 
     /**
      * Inventory of the tile for use with ME, should always return an valid list, never NULL.

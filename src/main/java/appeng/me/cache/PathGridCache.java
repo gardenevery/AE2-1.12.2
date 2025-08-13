@@ -67,7 +67,6 @@ public class PathGridCache implements IPathingGrid {
     private boolean reboot = true;
     private boolean booting = false;
     private ControllerState controllerState = ControllerState.NO_CONTROLLER;
-    private int ticksUntilReady = 0;
     private int lastChannels = 0;
     /**
      * This can be used for testing to set a specific channel mode on this grid that will not be overwritten by
@@ -103,18 +102,15 @@ public class PathGridCache implements IPathingGrid {
                     used = 0;
                 }
                 this.channelsInUse = used;
-
+                this.booting = false;
                 var nodes = this.grid.getNodes().size();
-                this.ticksUntilReady = 1;
                 this.channelsByBlocks = nodes * used;
                 this.setChannelPowerUsage(this.channelsByBlocks / 128.0);
 
                 this.grid.getPivot().beginVisit(new AdHocChannelUpdater(used));
             } else if (this.controllerState == ControllerState.CONTROLLER_CONFLICT) {
-                this.ticksUntilReady = 1;
                 this.grid.getPivot().beginVisit(new AdHocChannelUpdater(0));
             } else {
-                this.ticksUntilReady = 1;
                 this.ongoingCalculation = new PathingCalculation(grid);
             }
         }
@@ -128,26 +124,22 @@ public class PathGridCache implements IPathingGrid {
                 ongoingCalculation = null;
             }
 
-            this.ticksUntilReady--;
-
-            if (ticksUntilReady <= 0) {
-                this.booting = false;
-                if (this.controllerState == ControllerState.CONTROLLER_ONLINE) {
-                    var controllerIterator = this.controllers.iterator();
-                    if (controllerIterator.hasNext()) {
-                        var controller = controllerIterator.next();
-                        controller.getGridNode(AEPartLocation.INTERNAL).beginVisit(new ControllerChannelUpdater());
-                    }
+            this.booting = false;
+            if (this.controllerState == ControllerState.CONTROLLER_ONLINE) {
+                var controllerIterator = this.controllers.iterator();
+                if (controllerIterator.hasNext()) {
+                    var controller = controllerIterator.next();
+                    controller.getGridNode(AEPartLocation.INTERNAL).beginVisit(new ControllerChannelUpdater());
                 }
-
-                // check for achievements
-                this.achievementPost();
-
-                this.setChannelPowerUsage(this.channelsByBlocks / 128.0);
-
-                this.booting = false;
-                this.grid.postEvent(new MENetworkBootingStatusChange());
             }
+
+            // check for achievements
+            this.achievementPost();
+
+            this.setChannelPowerUsage(this.channelsByBlocks / 128.0);
+
+            this.booting = false;
+            this.grid.postEvent(new MENetworkBootingStatusChange());
         }
     }
 

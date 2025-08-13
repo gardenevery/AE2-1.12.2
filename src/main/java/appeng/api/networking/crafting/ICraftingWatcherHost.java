@@ -23,9 +23,10 @@
 
 package appeng.api.networking.crafting;
 
+import appeng.api.networking.IGridNodeService;
 import appeng.api.storage.data.IAEItemStack;
 
-public interface ICraftingWatcherHost {
+public interface ICraftingWatcherHost extends IGridNodeService {
 
     /**
      * provides the ICraftingWatcher for this host, for the current network, is called when the hot changes networks.

@@ -25,7 +25,9 @@ package appeng.api.networking.energy;
 
 import javax.annotation.Nonnull;
 
-public interface IEnergyWatcherHost {
+import appeng.api.networking.IGridNodeService;
+
+public interface IEnergyWatcherHost extends IGridNodeService {
 
     /**
      * provides the IEnergyWatcher for this host, for the current network, is called when the hot changes networks. You
