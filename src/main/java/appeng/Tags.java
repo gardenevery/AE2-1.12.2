@@ -8,7 +8,7 @@ public class Tags {
 
     public static final String MODNAME = "AE2 Unofficial Extended Life";
 
-    public static final String VERSION = "v1.0.3";
+    public static final String VERSION = "v1.0.4";
 
     public static final String AEVERSION = "rv6";
 

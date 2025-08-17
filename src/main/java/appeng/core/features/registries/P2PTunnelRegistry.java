@@ -24,6 +24,8 @@ import java.util.Map.Entry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.jetbrains.annotations.NotNull;
+
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -283,5 +285,10 @@ public final class P2PTunnelRegistry implements IP2PTunnelRegistry {
 
     private void addNewAttunement(final IItemDefinition definition, final TunnelType type) {
         definition.maybeStack(1).ifPresent(definitionStack -> this.addNewAttunement(definitionStack, type));
+    }
+
+    @Override
+    public TunnelType registerTunnelType(@NotNull String enumName, @NotNull ItemStack partStack) {
+        return TunnelType.registerTunnelType(enumName, partStack);
     }
 }

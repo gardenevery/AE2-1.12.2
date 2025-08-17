@@ -23,15 +23,68 @@
 
 package appeng.api.config;
 
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import javax.annotation.Nonnull;
+
+import com.google.common.base.Preconditions;
+
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.util.EnumHelper;
+
+import appeng.api.AEApi;
+import appeng.api.definitions.IItemDefinition;
+import appeng.api.definitions.IParts;
+import appeng.api.parts.IPartItem;
+
 public enum TunnelType {
-    ME, // Network Tunnel
-    IC2_POWER, // EU Tunnel
-    FE_POWER, // Forge Energy tunnel
-    GTEU_POWER, // Forge Energy tunnel
-    REDSTONE, // Redstone Tunnel
-    FLUID, // Fluid Tunnel
-    ITEM, // Item Tunnel
-    LIGHT, // Light Tunnel
-    BUNDLED_REDSTONE, // Bundled Redstone Tunnel
-    COMPUTER_MESSAGE // Computer Message Tunnel
+    ME(tryPartStack(IParts::p2PTunnelME)),
+    IC2_POWER(tryPartStack(IParts::p2PTunnelEU)),
+    FE_POWER(tryPartStack(IParts::p2PTunnelFE)),
+    GTEU_POWER(tryPartStack(IParts::p2PTunnelGTEU)),
+    REDSTONE(tryPartStack(IParts::p2PTunnelRedstone)),
+    FLUID(tryPartStack(IParts::p2PTunnelFE)),
+    ITEM(tryPartStack(IParts::p2PTunnelItems)),
+    LIGHT(tryPartStack(IParts::p2PTunnelLight));
+
+    private ItemStack partItemStack;
+    private Supplier<ItemStack> partItemStackSupplier;
+
+    @Deprecated
+    TunnelType() {
+        this.partItemStack = ItemStack.EMPTY;
+        this.partItemStackSupplier = null;
+    }
+
+    // Public facing.
+    TunnelType(ItemStack partItemStack) {
+        this.partItemStack = partItemStack;
+        this.partItemStackSupplier = null;
+    }
+
+    // Work around things instantiating this class too early.
+    TunnelType(Supplier<ItemStack> supplier) {
+        this.partItemStack = null;
+        this.partItemStackSupplier = supplier;
+    }
+
+    private static Supplier<ItemStack> tryPartStack(Function<IParts, IItemDefinition> supplier) {
+        return () -> supplier.apply(AEApi.instance().definitions().parts()).maybeStack(1).orElse(ItemStack.EMPTY);
+    }
+
+    public static TunnelType registerTunnelType(@Nonnull String name, @Nonnull ItemStack partItemStack) {
+        Preconditions.checkArgument(partItemStack.isEmpty() || partItemStack.getItem() instanceof IPartItem<?>,
+                "Part item must be an instance of IPartItem");
+
+        return EnumHelper.addEnum(TunnelType.class, name, new Class[] { ItemStack.class }, partItemStack);
+    }
+
+    public ItemStack getPartItemStack() {
+        if (this.partItemStackSupplier != null) {
+            this.partItemStack = this.partItemStackSupplier.get();
+            this.partItemStackSupplier = null;
+        }
+        return partItemStack;
+    }
 }
